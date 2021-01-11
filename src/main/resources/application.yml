@@ -1,6 +1,6 @@
 mybatis:
   type-aliases-package: top.yangbq.pojo
-  config-locations: classpath:top/yangbq/mapper/*.xml
+  mapper-locations: classpath:top/yangbq/mapper/*.xml
   configuration:
     cache-enabled: true
 
