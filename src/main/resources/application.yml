@@ -1,0 +1,24 @@
+mybatis:
+  type-aliases-package: top.yangbq.pojo
+  config-locations: classpath:top/yangbq/mapper/*.xml
+  configuration:
+    cache-enabled: true
+
+# pagehelper
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+
+spring:
+  profiles:
+    active: dev
+  redis:
+    host: 118.31.247.49
+    password: 123
+    port: 6379
+    database: 1
+    lettuce:
+      shutdown-timeout: 30s
+

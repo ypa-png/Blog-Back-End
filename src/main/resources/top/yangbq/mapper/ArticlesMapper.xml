@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.yangbq.mapper.ArticlesMapper">
+  <resultMap id="BaseResultMap" type="top.yangbq.pojo.Articles">
+    <id column="article_id" jdbcType="VARCHAR" property="articleId" />
+    <result column="user_id" jdbcType="VARCHAR" property="userId" />
+    <result column="article_title" jdbcType="VARCHAR" property="articleTitle" />
+    <result column="article_content" jdbcType="VARCHAR" property="articleContent" />
+    <result column="article_date" jdbcType="TIMESTAMP" property="articleDate" />
+    <result column="article_cover" jdbcType="VARCHAR" property="articleCover" />
+    <result column="article_good" jdbcType="INTEGER" property="articleGood" />
+    <result column="article_reply" jdbcType="INTEGER" property="articleReply" />
+    <result column="article_scan" jdbcType="INTEGER" property="articleScan" />
+    <result column="article_tag" jdbcType="VARCHAR" property="articleTag" />
+    <result column="article_category_id" jdbcType="VARCHAR" property="articleCategoryId" />
+    <result column="article_general" jdbcType="VARCHAR" property="articleGeneral" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    article_id, user_id, article_title, article_content, article_date, article_cover, 
+    article_good, article_reply, article_scan, article_tag, article_category_id, article_general
+  </sql>
+  <select id="selectByExample" parameterType="top.yangbq.pojo.ArticlesExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from articles
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from articles
+    where article_id = #{articleId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from articles
+    where article_id = #{articleId,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="top.yangbq.pojo.ArticlesExample">
+    delete from articles
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="top.yangbq.pojo.Articles">
+    insert into articles (article_id, user_id, article_title, 
+      article_content, article_date, article_cover, 
+      article_good, article_reply, article_scan, 
+      article_tag, article_category_id, article_general
+      )
+    values (#{articleId,jdbcType=VARCHAR}, #{userId,jdbcType=VARCHAR}, #{articleTitle,jdbcType=VARCHAR}, 
+      #{articleContent,jdbcType=VARCHAR}, #{articleDate,jdbcType=TIMESTAMP}, #{articleCover,jdbcType=VARCHAR}, 
+      #{articleGood,jdbcType=INTEGER}, #{articleReply,jdbcType=INTEGER}, #{articleScan,jdbcType=INTEGER}, 
+      #{articleTag,jdbcType=VARCHAR}, #{articleCategoryId,jdbcType=VARCHAR}, #{articleGeneral,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="top.yangbq.pojo.Articles">
+    insert into articles
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="articleId != null">
+        article_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="articleTitle != null">
+        article_title,
+      </if>
+      <if test="articleContent != null">
+        article_content,
+      </if>
+      <if test="articleDate != null">
+        article_date,
+      </if>
+      <if test="articleCover != null">
+        article_cover,
+      </if>
+      <if test="articleGood != null">
+        article_good,
+      </if>
+      <if test="articleReply != null">
+        article_reply,
+      </if>
+      <if test="articleScan != null">
+        article_scan,
+      </if>
+      <if test="articleTag != null">
+        article_tag,
+      </if>
+      <if test="articleCategoryId != null">
+        article_category_id,
+      </if>
+      <if test="articleGeneral != null">
+        article_general,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="articleId != null">
+        #{articleId,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="articleTitle != null">
+        #{articleTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="articleContent != null">
+        #{articleContent,jdbcType=VARCHAR},
+      </if>
+      <if test="articleDate != null">
+        #{articleDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="articleCover != null">
+        #{articleCover,jdbcType=VARCHAR},
+      </if>
+      <if test="articleGood != null">
+        #{articleGood,jdbcType=INTEGER},
+      </if>
+      <if test="articleReply != null">
+        #{articleReply,jdbcType=INTEGER},
+      </if>
+      <if test="articleScan != null">
+        #{articleScan,jdbcType=INTEGER},
+      </if>
+      <if test="articleTag != null">
+        #{articleTag,jdbcType=VARCHAR},
+      </if>
+      <if test="articleCategoryId != null">
+        #{articleCategoryId,jdbcType=VARCHAR},
+      </if>
+      <if test="articleGeneral != null">
+        #{articleGeneral,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="top.yangbq.pojo.ArticlesExample" resultType="java.lang.Long">
+    select count(*) from articles
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update articles
+    <set>
+      <if test="record.articleId != null">
+        article_id = #{record.articleId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userId != null">
+        user_id = #{record.userId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.articleTitle != null">
+        article_title = #{record.articleTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="record.articleContent != null">
+        article_content = #{record.articleContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.articleDate != null">
+        article_date = #{record.articleDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.articleCover != null">
+        article_cover = #{record.articleCover,jdbcType=VARCHAR},
+      </if>
+      <if test="record.articleGood != null">
+        article_good = #{record.articleGood,jdbcType=INTEGER},
+      </if>
+      <if test="record.articleReply != null">
+        article_reply = #{record.articleReply,jdbcType=INTEGER},
+      </if>
+      <if test="record.articleScan != null">
+        article_scan = #{record.articleScan,jdbcType=INTEGER},
+      </if>
+      <if test="record.articleTag != null">
+        article_tag = #{record.articleTag,jdbcType=VARCHAR},
+      </if>
+      <if test="record.articleCategoryId != null">
+        article_category_id = #{record.articleCategoryId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.articleGeneral != null">
+        article_general = #{record.articleGeneral,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update articles
+    set article_id = #{record.articleId,jdbcType=VARCHAR},
+      user_id = #{record.userId,jdbcType=VARCHAR},
+      article_title = #{record.articleTitle,jdbcType=VARCHAR},
+      article_content = #{record.articleContent,jdbcType=VARCHAR},
+      article_date = #{record.articleDate,jdbcType=TIMESTAMP},
+      article_cover = #{record.articleCover,jdbcType=VARCHAR},
+      article_good = #{record.articleGood,jdbcType=INTEGER},
+      article_reply = #{record.articleReply,jdbcType=INTEGER},
+      article_scan = #{record.articleScan,jdbcType=INTEGER},
+      article_tag = #{record.articleTag,jdbcType=VARCHAR},
+      article_category_id = #{record.articleCategoryId,jdbcType=VARCHAR},
+      article_general = #{record.articleGeneral,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="top.yangbq.pojo.Articles">
+    update articles
+    <set>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="articleTitle != null">
+        article_title = #{articleTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="articleContent != null">
+        article_content = #{articleContent,jdbcType=VARCHAR},
+      </if>
+      <if test="articleDate != null">
+        article_date = #{articleDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="articleCover != null">
+        article_cover = #{articleCover,jdbcType=VARCHAR},
+      </if>
+      <if test="articleGood != null">
+        article_good = #{articleGood,jdbcType=INTEGER},
+      </if>
+      <if test="articleReply != null">
+        article_reply = #{articleReply,jdbcType=INTEGER},
+      </if>
+      <if test="articleScan != null">
+        article_scan = #{articleScan,jdbcType=INTEGER},
+      </if>
+      <if test="articleTag != null">
+        article_tag = #{articleTag,jdbcType=VARCHAR},
+      </if>
+      <if test="articleCategoryId != null">
+        article_category_id = #{articleCategoryId,jdbcType=VARCHAR},
+      </if>
+      <if test="articleGeneral != null">
+        article_general = #{articleGeneral,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where article_id = #{articleId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="top.yangbq.pojo.Articles">
+    update articles
+    set user_id = #{userId,jdbcType=VARCHAR},
+      article_title = #{articleTitle,jdbcType=VARCHAR},
+      article_content = #{articleContent,jdbcType=VARCHAR},
+      article_date = #{articleDate,jdbcType=TIMESTAMP},
+      article_cover = #{articleCover,jdbcType=VARCHAR},
+      article_good = #{articleGood,jdbcType=INTEGER},
+      article_reply = #{articleReply,jdbcType=INTEGER},
+      article_scan = #{articleScan,jdbcType=INTEGER},
+      article_tag = #{articleTag,jdbcType=VARCHAR},
+      article_category_id = #{articleCategoryId,jdbcType=VARCHAR},
+      article_general = #{articleGeneral,jdbcType=VARCHAR}
+    where article_id = #{articleId,jdbcType=VARCHAR}
+  </update>
+</mapper>
