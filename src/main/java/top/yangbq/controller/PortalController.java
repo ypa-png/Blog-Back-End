@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import top.yangbq.pojo.*;
@@ -24,12 +25,12 @@ import java.util.concurrent.TimeUnit;
 @CrossOrigin
 @RequestMapping ( "/portal" )
 /**
-*@ClassName: PortalController
-*@Description
-*@Author yangbq
-*@Date 2021/1/11
-*@Time 14:19
-*/
+ *@ClassName: PortalController
+ *@Description
+ *@Author yangbq
+ *@Date 2021/1/11
+ *@Time 14:19
+ */
 public class PortalController {
 
     @Autowired
@@ -43,6 +44,9 @@ public class PortalController {
 
     @Autowired
     RedisTemplate redisTemplate;
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
 
     @GetMapping ( value = "/contentList/{count}" )
@@ -104,26 +108,41 @@ public class PortalController {
 
     /**
      * @MethodName: articleReadCount
-     * @Description 给文章访问量赋值，将访问端ip地址存储在redis并设置半小时过期
+     * @Description 给文章访问量赋值，并设置同一篇文章半小时内重复访问时，访问量只增加一次
      * @Author yangbq
      * @MethodReturnType java.lang.Integer
      * @ParameterNames [articleId , request]
      * @Date 2021/1/6
      * @Time 21:50
      */
+    //获取IP地址
+//        String ipAddr = IpUtils.getIpAddr ( request );
     private Integer articleReadCount ( String articleId , HttpServletRequest request ) throws Exception {
         BoundHashOperations countHash = redisTemplate.boundHashOps ( "articleScanCount" );
-//        BoundValueOperations visitorIp = redisTemplate.boundValueOps ( "visitorIp" );
-        String ipAddr = IpUtils.getIpAddr ( request );
-//        visitorIp.set ( ipAddr , 30 , TimeUnit.MINUTES );
+        BoundHashOperations repeatScanHash = stringRedisTemplate.boundHashOps ( "repeatScanHash" );
 
-        if (countHash.hasKey ( articleId )) {
-            Integer count = (Integer) countHash.get ( articleId );
-            countHash.put ( articleId , count + 1 );
-        } else {
-            countHash.put ( articleId , 1 );
+        if (!repeatScanHash.hasKey ( articleId )) {
+            if (countHash.hasKey ( articleId )) {
+                Integer count = (Integer) countHash.get ( articleId );
+                countHash.put ( articleId , count + 1 );
+            } else {
+                countHash.put ( articleId , 1 );
+            }
+            repeatScanHash.put ( articleId , "0" );
+            repeatScanHash.expire ( 30 , TimeUnit.MINUTES );
         }
+
         return (Integer) countHash.get ( articleId );
+    }
+
+    @GetMapping ( "/testRedis" )
+    public Map test ( String articleId ) {
+        Map map = new HashMap ( 50 );
+
+        stringRedisTemplate.boundHashOps ( "repeatScanHash" ).put ( articleId , "0" );
+        stringRedisTemplate.boundHashOps ( "repeatScanHash" ).expire ( 30 , TimeUnit.SECONDS );
+        map.put ( articleId , stringRedisTemplate.boundHashOps ( "repeatScanHash" ).get ( articleId ) );
+        return map;
     }
 
 
