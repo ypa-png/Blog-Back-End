@@ -2,8 +2,11 @@ package top.yangbq.service;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import top.yangbq.mapper.ArticlesMapper;
@@ -15,6 +18,7 @@ import top.yangbq.vo.ArticlesVo;
 import java.util.*;
 
 @Service
+@Slf4j
 public class ArticleServiceImpl implements ArticleService {
 
     @Autowired
@@ -156,5 +160,30 @@ public class ArticleServiceImpl implements ArticleService {
         return picUrls;
     }
 
+    /**
+    *@MethodName: cron
+    *@Description 定时将redis中刘浏览量数据更新到数据库完成！
+    *@Author yangbq
+    *@MethodReturnType void
+    *@ParameterNames []
+    *@Date 2021/1/12
+    *@Time 11:43
+    */
+    @Scheduled ( cron = "0/10 * * * * *" )
+    public void cron () {
+        BoundHashOperations articleScanCount = redisTemplate.boundHashOps ( "articleScanCount" );
+        Set keys = articleScanCount.keys ( );
+        List list = articleScanCount.multiGet ( keys );
+        if (keys != null && list != null) {
+            for (int i = 0; i < list.size ( ); i++) {
+                Articles article = new Articles ( );
+                List < String > keysList = new ArrayList < String > ( keys );
+                article.setArticleId ( keysList.get ( i ) );
+                article.setArticleScan ( (Integer) list.get ( i ) );
+                articlesMapper.updateByPrimaryKeySelective ( article );
+            }
+        }
+        log.info ( "定时将redis中刘浏览量数据更新到数据库完成！" );
+    }
 
 }
