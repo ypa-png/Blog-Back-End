@@ -37,4 +37,5 @@ public interface ArticleService {
     List< String> getArticlePicList ( Integer count );
 
 
+    List< Map< String, String>> getAllTags ();
 }

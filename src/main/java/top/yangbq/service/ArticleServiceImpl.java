@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import top.yangbq.mapper.ArticlesMapper;
 import top.yangbq.mapper.UsersMapper;
 import top.yangbq.pojo.Articles;
@@ -160,16 +161,17 @@ public class ArticleServiceImpl implements ArticleService {
         return picUrls;
     }
 
+
     /**
-    *@MethodName: cron
-    *@Description 定时将redis中刘浏览量数据更新到数据库完成！
-    *@Author yangbq
-    *@MethodReturnType void
-    *@ParameterNames []
-    *@Date 2021/1/12
-    *@Time 11:43
-    */
-    @Scheduled ( cron = "0/10 * * * * *" )
+     * @MethodName: cron
+     * @Description 定时将redis中刘浏览量数据更新到数据库完成！每天凌晨四点（04:00）执行
+     * @Author yangbq
+     * @MethodReturnType void
+     * @ParameterNames []
+     * @Date 2021/1/12
+     * @Time 11:43
+     */
+    @Scheduled ( cron = "0 0 4 * * ?" )
     public void cron () {
         BoundHashOperations articleScanCount = redisTemplate.boundHashOps ( "articleScanCount" );
         Set keys = articleScanCount.keys ( );
@@ -183,7 +185,33 @@ public class ArticleServiceImpl implements ArticleService {
                 articlesMapper.updateByPrimaryKeySelective ( article );
             }
         }
-        log.info ( "定时将redis中刘浏览量数据更新到数据库完成！" );
+    }
+
+    @Override
+    public List < Map < String, String > > getAllTags () {
+
+        Set < Map < String, String > > tagMapList = new HashSet <> ( );
+        ArticlesExample example = new ArticlesExample ( );
+        List < Articles > articles = articlesMapper.selectByExample ( example );
+
+        for (Articles article : articles) {
+//            System.out.println ( article.getArticleTag () );
+            String articleTag = article.getArticleTag ( );
+            List < String > stringList = Arrays.asList ( articleTag.replaceAll ( " " , "" ).split ( "," ) );
+//            System.out.println ( stringList );
+            for (String s : stringList) {
+                Map < String, String > map = new HashMap <> ( 30 );
+                System.out.println ( s );
+                map.put ( "name" , s );
+                example.createCriteria ( ).andArticleTagLike ( "%" + s + "%" );
+                Long count = articlesMapper.countByExample ( example );
+                map.put ( "count" , String.valueOf ( count ) );
+                example.clear ( );
+                tagMapList.add ( map );
+            }
+
+        }
+        return new ArrayList <> ( tagMapList );
     }
 
 }

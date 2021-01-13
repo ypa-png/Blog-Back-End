@@ -239,5 +239,12 @@ public class PortalController {
         return map;
     }
 
+    @GetMapping ( "/article/allTag" )
+    public Map getAllTags () {
+        List < Map < String, String > > list = articleService.getAllTags ( );
+        Map < String, List < Map < String, String > > > map = new HashMap <> ( 1 );
+        map.put ( "tags" , list );
+        return map;
+    }
 
 }
