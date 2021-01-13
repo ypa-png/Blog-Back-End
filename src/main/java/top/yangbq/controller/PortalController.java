@@ -14,6 +14,7 @@ import top.yangbq.service.ArticleService;
 import top.yangbq.service.UserService;
 import top.yangbq.utils.IpUtils;
 import top.yangbq.vo.CommentUserInfo;
+import top.yangbq.vo.req.CommentVo;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -69,7 +70,7 @@ public class PortalController {
     public Map pageList ( @RequestParam ( value = "currentPage", defaultValue = "1" ) Integer currentPage ,
                           @RequestParam ( value = "pageSize", defaultValue = "4  " ) Integer pageSize
             , @RequestBody Articles article ) {
-        Map map = null;
+        Map map = new HashMap ( );
         try {
             map = articleService.listArticle ( currentPage , pageSize , article );
             map.put ( "state" , true );
@@ -179,40 +180,15 @@ public class PortalController {
 
 
     @PostMapping ( "/comment/add" )
-    public Map < String, Object > addComment ( @RequestParam ( "articleId" ) String articleId ,
-                                               @RequestParam ( "pid" ) Integer pid ,
-                                               @RequestParam ( "commentContent" ) String commentContent ,
-                                               @RequestParam ( "userId" ) String userId ) {
+    public Map < String, Object > addComment ( CommentVo commentVo ) {
         Map < String, Object > map = new HashMap <> ( );
-        ArticleComment comment = new ArticleComment ( );
-
-        comment.setArticleId ( articleId );
-        comment.setPid ( pid );
-        commentContent = commentContent
-                .replaceAll ( "傻" , " * " )
-                .replaceAll ( "逼" , " * " )
-                .replaceAll ( "操" , " * " )
-                .replaceAll ( "妈" , " * " )
-                .replaceAll ( "娘" , " * " )
-                .replaceAll ( "狗逼" , " * * " )
-                .replaceAll ( "狗币" , " * * " )
-                .replaceAll ( "日" , " * " )
-                .replaceAll ( "干你妈" , " * * * " )
-                .replaceAll ( "草尼玛" , " * * * " )
-                .replaceAll ( "干你娘" , " * * * " )
-                .replaceAll ( "干尼玛" , " * * * " )
-                .replaceAll ( "狗 逼" , " * * * " );
-        comment.setContent ( commentContent );
-        comment.setFromUserId ( userId );
-
-        comment.setStatus ( true );
-
         try {
-            commentService.insertSelective ( comment );
+            commentService.addComment ( commentVo );
             map.put ( "msg" , "评论已提交" );
             map.put ( "state" , true );
         } catch (Exception e) {
-            map.put ( "msg" , "出问题了QAQ" );
+            e.printStackTrace ( );
+            map.put ( "msg" , "出问题了QAQ" + e.getMessage ( ) );
             map.put ( "state" , false );
         }
         return map;

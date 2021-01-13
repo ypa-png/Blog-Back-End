@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import org.apache.ibatis.annotations.Param;
 import top.yangbq.pojo.ArticleComment;
 import top.yangbq.pojo.ArticleCommentExample;
+import top.yangbq.vo.req.CommentVo;
 
 import java.util.List;
 
@@ -31,4 +32,6 @@ public interface ArticleCommentService {
     int updateByPrimaryKey(ArticleComment record);
 
     PageInfo < ArticleComment > commentPageList( Integer currentPage, Integer pageSize, @Param("example") ArticleCommentExample example);
+
+    void addComment( CommentVo commentVo );
 }

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -30,6 +31,9 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Autowired
     RedisTemplate redisTemplate;
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @Override
     public long countByExample ( ArticlesExample example ) {
@@ -127,11 +131,17 @@ public class ArticleServiceImpl implements ArticleService {
 
 
         Map entries = redisTemplate.boundHashOps ( "articleScanCount" ).entries ( );
+        Map comentCountHash = stringRedisTemplate.boundHashOps ( "comentCountHash" ).entries ( );
         list.forEach ( article -> {
             if (StringUtils.isEmpty ( entries.get ( article.getArticleId ( ) ) )) {
                 article.setArticleScan ( 0 );
             } else {
                 article.setArticleScan ( (Integer) entries.get ( article.getArticleId ( ) ) );
+            }
+            if (StringUtils.isEmpty ( comentCountHash.get ( article.getArticleId ( ) ) )) {
+                article.setArticleReply ( 0 );
+            } else {
+                article.setArticleReply ( Integer.parseInt ( (String) comentCountHash.get ( article.getArticleId ( ) ) ) );
             }
 //            System.out.println ((Integer) entries.get ( article.getArticleId () ) );
         } );
@@ -164,16 +174,20 @@ public class ArticleServiceImpl implements ArticleService {
 
     /**
      * @MethodName: cron
-     * @Description 定时将redis中刘浏览量数据更新到数据库完成！每天凌晨四点（04:00）执行
+     * @Description 定时将redis中刘浏览量 , 评论量更新到数据库！每天凌晨四点（04:00）执行
      * @Author yangbq
      * @MethodReturnType void
      * @ParameterNames []
      * @Date 2021/1/12
      * @Time 11:43
      */
-    @Scheduled ( cron = "0 0 4 * * ?" )
+    //每天四点
+//    @Scheduled ( cron = "0 0 4 * * ?" )
+    //每一分钟
+    @Scheduled ( cron = "0 0/1 * * * ?" )
     public void cron () {
         BoundHashOperations articleScanCount = redisTemplate.boundHashOps ( "articleScanCount" );
+
         Set keys = articleScanCount.keys ( );
         List list = articleScanCount.multiGet ( keys );
         if (keys != null && list != null) {
@@ -185,6 +199,20 @@ public class ArticleServiceImpl implements ArticleService {
                 articlesMapper.updateByPrimaryKeySelective ( article );
             }
         }
+
+        BoundHashOperations comentCountHash = stringRedisTemplate.boundHashOps ( "comentCountHash" );
+        Set keys1 = comentCountHash.keys ( );
+        List list1 = comentCountHash.multiGet ( keys1 );
+        if (keys1 != null && list1 != null) {
+            for (int i = 0; i < list1.size ( ); i++) {
+                Articles articles = new Articles ( );
+                List < String > keysList2 = new ArrayList <> ( keys1 );
+                articles.setArticleId ( keysList2.get ( i ) );
+                articles.setArticleReply ( Integer.valueOf ( (String)list1.get ( i ) ) );
+                articlesMapper.updateByPrimaryKeySelective ( articles );
+            }
+        }
+
     }
 
     @Override
