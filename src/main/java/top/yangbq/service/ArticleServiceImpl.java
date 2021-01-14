@@ -3,6 +3,7 @@ package top.yangbq.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -118,17 +119,22 @@ public class ArticleServiceImpl implements ArticleService {
     public Map listArticle ( Integer currentPage , Integer pageSize , Articles searchEntity ) {
         Map < String, Object > map = new HashMap <> ( );
         ArticlesExample example = new ArticlesExample ( );
+        ArticlesExample.Criteria criteria = example.createCriteria ( );
+
         if (searchEntity != null) {
             if (!StringUtils.isEmpty ( searchEntity.getArticleTitle ( ) )) {
-                example.createCriteria ( ).andArticleTitleLike ( "%" + searchEntity.getArticleTitle ( ) + "%" );
+                criteria.andArticleTitleLike ( "%" + searchEntity.getArticleTitle ( ) + "%" );
+            }
+            if (!StringUtils.isEmpty ( searchEntity.getArticleTag ( ) )) {
+                criteria.andArticleTagLike ( "%" + searchEntity.getArticleTag ( ) + "%" );
             }
         }
+
         PageHelper.startPage ( currentPage , pageSize );
         List < Articles > articles = articlesMapper.selectByExample ( example );
         PageInfo < Articles > pageInfo = new PageInfo <> ( articles );
 
         List < Articles > list = pageInfo.getList ( );
-
 
         Map entries = redisTemplate.boundHashOps ( "articleScanCount" ).entries ( );
         Map comentCountHash = stringRedisTemplate.boundHashOps ( "comentCountHash" ).entries ( );
@@ -208,38 +214,69 @@ public class ArticleServiceImpl implements ArticleService {
                 Articles articles = new Articles ( );
                 List < String > keysList2 = new ArrayList <> ( keys1 );
                 articles.setArticleId ( keysList2.get ( i ) );
-                articles.setArticleReply ( Integer.valueOf ( (String)list1.get ( i ) ) );
+                articles.setArticleReply ( Integer.valueOf ( (String) list1.get ( i ) ) );
                 articlesMapper.updateByPrimaryKeySelective ( articles );
             }
         }
 
     }
 
+//    @Override
+//    public List < Map < String, String > > getAllTags () {
+//
+//        Set < Map < String, String > > tagMapList = new HashSet <> ( );
+//        ArticlesExample example = new ArticlesExample ( );
+//        List < Articles > articles = articlesMapper.selectByExample ( example );
+//
+//        for (Articles article : articles) {
+////            System.out.println ( article.getArticleTag () );
+//            String articleTag = article.getArticleTag ( );
+//            List < String > stringList = Arrays.asList ( articleTag.replaceAll ( " " , "" ).split ( "," ) );
+////            System.out.println ( stringList );
+//            for (String s : stringList) {
+//                Map < String, String > map = new HashMap <> ( 30 );
+//                System.out.println ( s );
+//                map.put ( "name" , s );
+//                example.createCriteria ( ).andArticleTagLike ( "%" + s + "%" );
+//                Long count = articlesMapper.countByExample ( example );
+//                map.put ( "count" , String.valueOf ( count ) );
+//                example.clear ( );
+//                tagMapList.add ( map );
+//            }
+//
+//        }
+//        return new ArrayList <> ( tagMapList );
+//    }
+
     @Override
     public List < Map < String, String > > getAllTags () {
-
-        Set < Map < String, String > > tagMapList = new HashSet <> ( );
-        ArticlesExample example = new ArticlesExample ( );
-        List < Articles > articles = articlesMapper.selectByExample ( example );
-
+        List < Map < String, String > > returnList = new ArrayList <> ( 20 );
+        List < Articles > articles = articlesMapper.selectByExample ( new ArticlesExample ( ) );
+        List < String > tagList = new ArrayList <> ( 20 );
         for (Articles article : articles) {
-//            System.out.println ( article.getArticleTag () );
             String articleTag = article.getArticleTag ( );
-            List < String > stringList = Arrays.asList ( articleTag.replaceAll ( " " , "" ).split ( "," ) );
-//            System.out.println ( stringList );
-            for (String s : stringList) {
-                Map < String, String > map = new HashMap <> ( 30 );
-                System.out.println ( s );
-                map.put ( "name" , s );
-                example.createCriteria ( ).andArticleTagLike ( "%" + s + "%" );
-                Long count = articlesMapper.countByExample ( example );
-                map.put ( "count" , String.valueOf ( count ) );
-                example.clear ( );
-                tagMapList.add ( map );
-            }
-
+            List < String > stringList = Arrays.asList ( articleTag.split ( "," ) );
+            tagList.addAll ( stringList );
         }
-        return new ArrayList <> ( tagMapList );
+
+        Map < String, String > tagCountMap = new HashMap <> ( 2 );
+        for (String tag : tagList) {
+            if (tagCountMap.get ( tag ) == null) {
+                tagCountMap.put ( tag , String.valueOf ( 1 ) );
+            } else {
+                tagCountMap.put ( tag , String.valueOf ( Integer.parseInt ( tagCountMap.get ( tag ) ) + 1 ) );
+            }
+        }
+
+        Set < Map.Entry < String, String > > entrieSet = tagCountMap.entrySet ( );
+        entrieSet.forEach ( entry -> {
+            Map < String, String > map = new HashMap <> ( 2 );
+            map.put ( "name" , entry.getKey ( ) );
+            map.put ( "count" , entry.getValue ( ) );
+            returnList.add ( map );
+        } );
+
+        return returnList;
     }
 
 }

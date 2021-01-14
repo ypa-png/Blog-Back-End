@@ -15,6 +15,13 @@ import top.yangbq.vo.req.CommentVo;
 
 import java.util.List;
 
+/**
+*@ClassName: ArticleCommentServiceImpl
+*@Description 文章评论服务类
+*@Author yangbq
+*@Date 2021/1/13
+*@Time 16:33
+*/
 @Service
 public class ArticleCommentServiceImpl implements ArticleCommentService {
 

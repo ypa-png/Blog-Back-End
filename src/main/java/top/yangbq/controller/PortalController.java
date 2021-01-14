@@ -116,7 +116,6 @@ public class PortalController {
      * @Date 2021/1/6
      * @Time 21:50
      */
-    //获取IP地址
 //        String ipAddr = IpUtils.getIpAddr ( request );
     private Integer articleReadCount ( String articleId , HttpServletRequest request ) throws Exception {
         BoundHashOperations countHash = redisTemplate.boundHashOps ( "articleScanCount" );
