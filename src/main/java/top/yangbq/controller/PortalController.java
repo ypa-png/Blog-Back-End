@@ -15,6 +15,7 @@ import top.yangbq.service.UserService;
 import top.yangbq.utils.IpUtils;
 import top.yangbq.vo.CommentUserInfo;
 import top.yangbq.vo.req.CommentVo;
+import top.yangbq.vo.resp.HotArticleVo;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -219,6 +220,21 @@ public class PortalController {
         List < Map < String, String > > list = articleService.getAllTags ( );
         Map < String, List < Map < String, String > > > map = new HashMap <> ( 1 );
         map.put ( "tags" , list );
+        return map;
+    }
+
+    @GetMapping ( "/hotArticles" )
+    public Map < String, Object > getHotArticle () {
+        Map < String, Object > map = new HashMap <> ( 2 );
+        try {
+            List < HotArticleVo > hotArticleList = articleService.getHotArticle ( );
+            map.put ( "state" , true );
+            map.put ( "data" , hotArticleList );
+        } catch (Exception e) {
+            e.printStackTrace ( );
+            map.put ( "state",false );
+            map.put ( "msg" ,e.getMessage ());
+        }
         return map;
     }
 

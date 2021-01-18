@@ -17,6 +17,7 @@ import top.yangbq.mapper.UsersMapper;
 import top.yangbq.pojo.Articles;
 import top.yangbq.pojo.ArticlesExample;
 import top.yangbq.vo.ArticlesVo;
+import top.yangbq.vo.resp.HotArticleVo;
 
 import java.util.*;
 
@@ -278,5 +279,27 @@ public class ArticleServiceImpl implements ArticleService {
 
         return returnList;
     }
+
+    @Override
+    public List < HotArticleVo > getHotArticle () {
+        ArticlesExample example = new ArticlesExample ( );
+        example.setOrderByClause ( "article_scan desc" );
+        List < Articles > articles = articlesMapper.selectByExample ( example ).subList ( 0 , 5 );
+        List < HotArticleVo > hotArticleVoList = new ArrayList <> ( 5 );
+
+        for (Articles article : articles) {
+            HotArticleVo hotArticleVo = new HotArticleVo ( );
+            hotArticleVo.setArticleId ( article.getArticleId ( ) );
+            hotArticleVo.setArticleCover ( article.getArticleCover ( ) );
+            hotArticleVo.setArticleDate ( article.getArticleDate ( ) );
+            hotArticleVo.setArticleScan ( article.getArticleScan ( ) );
+            hotArticleVo.setArticleTitle ( article.getArticleTitle ( ) );
+            hotArticleVo.setUserHeadPic ( userMapper.selectByPrimaryKey ( article.getUserId ( ) ).getUserHeadpic ( ) );
+            hotArticleVoList.add ( hotArticleVo );
+        }
+//        System.out.println ( hotArticleVoList );
+        return hotArticleVoList;
+    }
+
 
 }

@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Param;
 import top.yangbq.pojo.Articles;
 import top.yangbq.pojo.ArticlesExample;
 import top.yangbq.vo.ArticlesVo;
+import top.yangbq.vo.resp.HotArticleVo;
 
 import java.util.List;
 import java.util.Map;
@@ -38,4 +39,6 @@ public interface ArticleService {
 
 
     List< Map< String, String>> getAllTags ();
+
+    List< HotArticleVo> getHotArticle ();
 }
