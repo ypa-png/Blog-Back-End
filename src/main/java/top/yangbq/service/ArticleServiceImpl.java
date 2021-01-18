@@ -16,6 +16,7 @@ import top.yangbq.mapper.ArticlesMapper;
 import top.yangbq.mapper.UsersMapper;
 import top.yangbq.pojo.Articles;
 import top.yangbq.pojo.ArticlesExample;
+import top.yangbq.utils.IdWork;
 import top.yangbq.vo.ArticlesVo;
 import top.yangbq.vo.resp.HotArticleVo;
 
@@ -118,6 +119,11 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public Map listArticle ( Integer currentPage , Integer pageSize , Articles searchEntity ) {
+
+
+        BoundHashOperations articleHash = redisTemplate.boundHashOps ( "articleHash" );
+
+
         Map < String, Object > map = new HashMap <> ( );
         ArticlesExample example = new ArticlesExample ( );
         ArticlesExample.Criteria criteria = example.createCriteria ( );
@@ -150,7 +156,6 @@ public class ArticleServiceImpl implements ArticleService {
             } else {
                 article.setArticleReply ( Integer.parseInt ( (String) comentCountHash.get ( article.getArticleId ( ) ) ) );
             }
-//            System.out.println ((Integer) entries.get ( article.getArticleId () ) );
         } );
 
         List < ArticlesVo > articleVoAsList = ArticlesVo.getArticleVoAsList ( list );
@@ -299,6 +304,17 @@ public class ArticleServiceImpl implements ArticleService {
         }
 //        System.out.println ( hotArticleVoList );
         return hotArticleVoList;
+    }
+
+    @Override
+    public void add ( Articles articles ) {
+        articles.setArticleId ( IdWork.getId ( ) );
+        articlesMapper.insertSelective ( articles );
+    }
+
+    @Override
+    public void update ( Articles articles ) {
+        articlesMapper.updateByPrimaryKeySelective ( articles );
     }
 
 

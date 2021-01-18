@@ -11,15 +11,18 @@ import top.yangbq.pojo.Articles;
 import top.yangbq.pojo.ArticlesExample;
 import top.yangbq.service.ArticleService;
 import top.yangbq.service.UserService;
+import top.yangbq.utils.AliOssTemplate;
 import top.yangbq.utils.IdWork;
 import top.yangbq.utils.JWTUtils;
 import top.yangbq.vo.ArticlesVo;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 
@@ -81,42 +84,69 @@ public class ArticleController {
      */
     @PutMapping ( "/article/add" )
     public Map < String, Object > test ( Articles articles , @RequestParam ( "cover" ) MultipartFile file , HttpServletRequest request ) {
-//        String rootPath = request.getSession ( ).getServletContext ( ).getRealPath ( "/" );
-        String rootPath = locationTemp;
-        String OriginalFilename = file.getOriginalFilename ( );
-        String ext = OriginalFilename.substring ( OriginalFilename.lastIndexOf ( "." ) );
-        String articleId = IdWork.getId ( );
-        String newFileName = "cover_" + articleId + System.currentTimeMillis ( ) + ext;
-        File coverFile = new File ( rootPath , File.separator + "article" + File.separator + "cover" + File.separator + newFileName );
-//        System.out.println ( coverFile.getAbsolutePath ( ) );
-        File coverDir = new File ( rootPath , File.separator + "article" + File.separator + "cover" );
-
         Map < String, Object > map = new HashMap <> ( );
-        map.put ( "msg" , "文章创建成功" );
-        map.put ( "state" , true );
+        AliOssTemplate aliOssTemplate = new AliOssTemplate ( );
         try {
-
-            if (!coverDir.exists ( )) {
-                coverDir.mkdirs ( );
-            }
-
-            try {
-                file.transferTo ( coverFile );
-            } catch (Exception e) {
-                e.printStackTrace ( );
-            }
+            String picUrl = aliOssTemplate.upload ( file , "article" );
             String userId = JWTUtils.verify ( request.getHeader ( "token" ) ).getClaims ( ).get ( "id" ).asString ( );
             articles.setUserId ( userId );
-            articles.setArticleId ( articleId );
-            articles.setArticleCover ( File.separator + "article" + File.separator + "cover" + File.separator + newFileName );
-            articleService.insertSelective ( articles );
-        } catch (Exception e) {
+            articles.setArticleCover ( picUrl );
+            try {
+                articleService.add ( articles );
+                map.put ( "msg" , "文章创建成功" );
+                map.put ( "state" , true );
+            } catch (Exception e) {
+                e.printStackTrace ( );
+                map.put ( "msg" , e.getMessage ( ) );
+                map.put ( "state" , false );
+            }
+        } catch (IOException e) {
             e.printStackTrace ( );
             map.put ( "msg" , e.getMessage ( ) );
             map.put ( "state" , false );
         }
         return map;
     }
+
+
+//    @PutMapping ( "/article/add" )
+//    public Map < String, Object > test ( Articles articles , @RequestParam ( "cover" ) MultipartFile file , HttpServletRequest request ) {
+////        String rootPath = request.getSession ( ).getServletContext ( ).getRealPath ( "/" );
+//        String rootPath = locationTemp;
+//        String OriginalFilename = file.getOriginalFilename ( );
+//        String ext = OriginalFilename.substring ( OriginalFilename.lastIndexOf ( "." ) );
+//        String articleId = IdWork.getId ( );
+//        String newFileName = "cover_" + articleId + System.currentTimeMillis ( ) + ext;
+//        File coverFile = new File ( rootPath , File.separator + "article" + File.separator + "cover" + File.separator + newFileName );
+////        System.out.println ( coverFile.getAbsolutePath ( ) );
+//        File coverDir = new File ( rootPath , File.separator + "article" + File.separator + "cover" );
+//
+//        Map < String, Object > map = new HashMap <> ( );
+//        map.put ( "msg" , "文章创建成功" );
+//        map.put ( "state" , true );
+//        try {
+//
+//            if (!coverDir.exists ( )) {
+//                coverDir.mkdirs ( );
+//            }
+//
+//            try {
+//                file.transferTo ( coverFile );
+//            } catch (Exception e) {
+//                e.printStackTrace ( );
+//            }
+//            String userId = JWTUtils.verify ( request.getHeader ( "token" ) ).getClaims ( ).get ( "id" ).asString ( );
+//            articles.setUserId ( userId );
+//            articles.setArticleId ( articleId );
+//            articles.setArticleCover ( File.separator + "article" + File.separator + "cover" + File.separator + newFileName );
+//            articleService.insertSelective ( articles );
+//        } catch (Exception e) {
+//            e.printStackTrace ( );
+//            map.put ( "msg" , e.getMessage ( ) );
+//            map.put ( "state" , false );
+//        }
+//        return map;
+//    }
 
 
     /**
@@ -128,7 +158,7 @@ public class ArticleController {
      * @Date 2020/11/18
      * @Time 21:23
      */
-    public String updateCover ( MultipartFile file , HttpServletRequest request , Articles articles ) throws Exception {
+    /*public String updateCover ( MultipartFile file , HttpServletRequest request , Articles articles ) throws Exception {
         System.out.println ( articles );
 //        String rootPath = request.getSession ( ).getServletContext ( ).getRealPath ( "/" );
         String rootPath = locationTemp;
@@ -149,7 +179,7 @@ public class ArticleController {
         }
         file.transferTo ( new File ( coverDir , newFileName ) );
         return newFileName;
-    }
+    }*/
 
     /**
      * @MethodName: updateArticle
@@ -161,6 +191,32 @@ public class ArticleController {
      * @Time 21:23
      */
     @PutMapping ( "article/update" )
+    public Map < String, Object > updateArticle ( Articles articles , MultipartFile cover , HttpServletRequest request ) {
+        Map < String, Object > map = new HashMap <> ( );
+        String userIdFromToken = JWTUtils.verify ( request.getHeader ( "token" ) ).getClaims ( ).get ( "id" ).asString ( );
+        String userIdFromModel = articleService.selectByPrimaryKey ( articles.getArticleId ( ) ).getUserId ( );
+        try {
+            String picUrl = new AliOssTemplate ( ).upload ( cover , "cover" );
+            articles.setArticleCover ( picUrl );
+            try {
+                articleService.update ( articles );
+                map.put ( "msg" , "文章修改成功" );
+                map.put ( "state" , true );
+            } catch (Exception e) {
+                e.printStackTrace ( );
+                map.put ( "msg" , e.getMessage ( ) );
+                map.put ( "state" , false );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace ( );
+            map.put ( "msg" , e.getMessage ( ) );
+            map.put ( "state" , false );
+        }
+        return map;
+    }
+
+    /*@PutMapping ( "article/update" )
     public Map < String, Object > updateArticle ( Articles articles , MultipartFile cover , HttpServletRequest request ) {
         String userIdFromToken = JWTUtils.verify ( request.getHeader ( "token" ) ).getClaims ( ).get ( "id" ).asString ( );
         String userIdFromModel = articleService.selectByPrimaryKey ( articles.getArticleId ( ) ).getUserId ( );
@@ -190,7 +246,7 @@ public class ArticleController {
             }
         }
         return map;
-    }
+    }*/
 
     @DeleteMapping ( "/article/delete" )
     public Map < String, Object > deleteArticle ( @RequestBody List < String > ids , HttpServletRequest request ) {
@@ -214,7 +270,7 @@ public class ArticleController {
                     articleService.deleteByPrimaryKey ( id );
                 }
             }
-            map.put ( "msg" , "删除了"+ids.size ()+"条数据" );
+            map.put ( "msg" , "删除了" + ids.size ( ) + "条数据" );
             map.put ( "state" , true );
         } catch (Exception e) {
             e.printStackTrace ( );
@@ -243,20 +299,28 @@ public class ArticleController {
 
     @PostMapping ( "article/pageList" )
     public Map pageList ( @RequestParam ( value = "currentPage", defaultValue = "1" ) Integer currentPage ,
-                                             @RequestParam ( value = "pageSize", defaultValue = "4  " ) Integer pageSize
-                                             ,@RequestBody Articles article) {
+                          @RequestParam ( value = "pageSize", defaultValue = "4  " ) Integer pageSize
+            , @RequestBody Articles article ) {
         Map map = null;
         try {
             map = articleService.listArticle ( currentPage , pageSize , article );
             map.put ( "state" , true );
         } catch (Exception e) {
             e.printStackTrace ( );
-            map.put ( "msg",e.getMessage () );
+            map.put ( "msg" , e.getMessage ( ) );
             map.put ( "state" , false );
         }
         return map;
     }
 
 
+    @PostMapping ( "/testUplaod" )
+    public String test ( @RequestParam ( "file" ) MultipartFile file ) throws Exception {
+//        AliOssTemplate
+        AliOssTemplate aliOssTemplate = new AliOssTemplate ( );
+
+        String upload = aliOssTemplate.upload ( file , "article" );
+        return upload;
+    }
 
 }

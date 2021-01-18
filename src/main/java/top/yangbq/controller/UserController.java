@@ -15,6 +15,7 @@ import top.yangbq.pojo.Articles;
 import top.yangbq.pojo.Users;
 import top.yangbq.pojo.UsersExample;
 import top.yangbq.service.UserService;
+import top.yangbq.utils.AliOssTemplate;
 import top.yangbq.utils.IdWork;
 import top.yangbq.utils.JWTUtils;
 
@@ -228,6 +229,8 @@ public class UserController {
         return newFileName;
     }
 
+
+
     @PutMapping ( "user/update" )
     public Map < String, Object > updateUser ( String user , MultipartFile file , HttpServletRequest request ) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper ( );
@@ -237,12 +240,12 @@ public class UserController {
         String fileName = null;
 
         try {
-            fileName = updateHeadPic ( file , request , users );
-            String fileNameINDataBase = File.separator + "user" + File.separator + "headPic" + File.separator + fileName;
-            users.setUserHeadpic ( fileNameINDataBase );
+//            fileName = updateHeadPic ( file , request , users );
+            fileName = new AliOssTemplate ().upload ( file,"userHeadPic" );
+            users.setUserHeadpic ( fileName );
             userService.updateByPrimaryKeySelective ( users );
             map.put ( "msg" , "修改成功" );
-            map.put ( "userHeadPic" , fileNameINDataBase );
+            map.put ( "userHeadPic" , fileName );
             map.put ( "state" , true );
         } catch (NullPointerException e) {
             userService.updateByPrimaryKeySelective ( users );

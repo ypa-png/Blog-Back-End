@@ -41,4 +41,8 @@ public interface ArticleService {
     List< Map< String, String>> getAllTags ();
 
     List< HotArticleVo> getHotArticle ();
+
+    void add ( Articles articles );
+
+    void update ( Articles articles );
 }
